@@ -6,9 +6,12 @@ import { toast } from 'react-toastify';
 import styles from "./quizPage.module.css";
 import Navigation from "../../components/navigation/Navigation";
 import Loading from "../../components/loadingScreen/Loading";
-
+ 
 const QuizPage = () => {
+  // Retrieve user information from context
   const [user] = useUser();
+
+  // State variables to manage quiz data
   const [questions, setQuestions] = useState([]);
   const { questionIndex } = useParams();
   const navigate = useNavigate();
@@ -17,10 +20,12 @@ const QuizPage = () => {
   const [userAnswers, setUserAnswers] = useState(Array(15).fill(null)); // Initialize with null values
   const [startTime, setStartTime] = useState(null);
 
+  // Function to fetch quiz questions from an external API
   const getAllQuestions = async () => {
     try {
       const response = await axios.get("https://opentdb.com/api.php?amount=15");
 
+      // Format questions and choices for better usability
       const formattedQuestions = response?.data.results.map((question) => ({
         ...question,
         choices: [question.correct_answer, ...question.incorrect_answers].sort(
@@ -34,22 +39,24 @@ const QuizPage = () => {
     }
   };
 
+  // Function to handle quiz completion and navigate to the result page
   const handleQuizCompletion = () => {
     toast.success("Submitted");
     navigate("/quiz/result", {
       state: { userAnswers, questions, startTime },
     });
   };
-
+ 
   const handleQuizStart = () => {
     setStartTime(new Date());
   };
-
+ 
   useEffect(() => {
     getAllQuestions();
     handleQuizStart();
   }, []);
 
+  // Effect to update the current question and visited status when the URL parameter changes
   useEffect(() => {
     const index = parseInt(questionIndex, 10);
     if (!isNaN(index) && index >= 0 && index < questions.length) {
@@ -64,10 +71,12 @@ const QuizPage = () => {
     }
   }, [questionIndex, questions, navigate]);
 
+  // Function to navigate to a specific question
   const navigateToQuestion = (index) => {
     navigate(`/quiz/question/${index}`);
   };
 
+  // Function to handle user's answer to the current question
   const handleAnswer = (answer) => {
     setUserAnswers((prevAnswers) => {
       const newAnswers = [...prevAnswers];
@@ -75,22 +84,24 @@ const QuizPage = () => {
       return newAnswers;
     });
   };
-
+ 
   const currentQuestion = questions[currentQuestionIndex];
-
+ 
   if (!currentQuestion) {
     return <div><Loading/></div>;
   }
 
+  // Redirect to home if user is not authenticated
   if (!user.email) {
     navigate("/");
     return null;
   }
-
+ 
   return (
     <div className={styles.main}>
       <h1>Quiz - {user.email}</h1>
       <div className={styles.container}>
+        {/* Navigation component to display question list and user progress */}
         <Navigation
           questions={questions}
           visitedQuestions={visitedQuestions}
@@ -98,6 +109,7 @@ const QuizPage = () => {
           onSelectQuestion={navigateToQuestion}
           userAnswers={userAnswers}
         />
+        {/* Display the current question and answer choices */}
         <div className={styles.questionContainer}>
           <div className={styles.questions}>
             <p className={styles.question}>{`Q ${currentQuestionIndex + 1}) ${currentQuestion.question}`}</p>
@@ -115,6 +127,7 @@ const QuizPage = () => {
                 ))}
             </ul>
           </div>
+          {/* Navigation buttons to move between questions */}
           <div className={styles.buttonsContainer}>
             <button
               className={styles.button}
@@ -130,7 +143,7 @@ const QuizPage = () => {
             >
               Next Question
             </button>
-          </div>
+          </div> 
           <button onClick={handleQuizCompletion} className={styles.submit}>
             Submit
           </button>
