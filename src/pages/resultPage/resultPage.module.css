@@ -1,0 +1,35 @@
+.mainWrapper{
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+.container {
+  padding: 0.5rem; 
+  border-width: 2px;
+  background-color: #ffffff;
+  @media (min-width: 640px) {
+    padding: 1.25rem;
+    margin: 1.25rem;
+  }
+}
+.cardsWrapper {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  padding: 20px;
+  justify-content: center;
+  gap: 20px;
+} 
+.link{
+  margin: 20px auto;
+  text-decoration: none;
+  background-color: #09416a;
+  color: white;
+  padding: 15px;
+  border-radius: 20px;
+}
+.questionsWrapper{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
