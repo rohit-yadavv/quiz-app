@@ -1,18 +1,17 @@
 import { useNavigate } from "react-router-dom";
 import { useUser } from "../../context/UserContext";
-import styles from "./homePage.module.css";
 import { useState } from "react";
 import { toast } from 'react-toastify';
-
+import styles from "./homePage.module.css";
 
 const HomePage = () => {
   const [email, setEmail] = useState("");
   const [, setUser] = useUser();
   const navigate = useNavigate();
- 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setUser({ email }); 
+    setUser({ email });
     toast.success("Welcome to Quiz app");
     navigate('/quiz/question/0');
   };

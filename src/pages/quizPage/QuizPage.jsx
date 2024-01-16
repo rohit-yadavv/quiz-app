@@ -1,30 +1,28 @@
-import axios from "axios";
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom"; 
+import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { useUser } from "../../context/UserContext";
+import { toast } from 'react-toastify';
 import styles from "./quizPage.module.css";
-import { useUser } from "../../context/UserContext"; 
 import Navigation from "../../components/navigation/Navigation";
 import Loading from "../../components/loadingScreen/Loading";
-import { toast } from 'react-toastify';
 
 const QuizPage = () => {
   const [user] = useUser();
-  const [questions, setQuestions] = useState([]); 
-
+  const [questions, setQuestions] = useState([]);
   const { questionIndex } = useParams();
   const navigate = useNavigate();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [visitedQuestions, setVisitedQuestions] = useState([]);
   const [userAnswers, setUserAnswers] = useState(Array(15).fill(null)); // Initialize with null values
-  const [startTime, setStartTime] = useState(null); 
+  const [startTime, setStartTime] = useState(null);
 
   const getAllQuestions = async () => {
-    try { 
+    try {
       const response = await axios.get("https://opentdb.com/api.php?amount=15");
 
       const formattedQuestions = response?.data.results.map((question) => ({
         ...question,
-        // Extract correct and incorrect answers and shuffle them
         choices: [question.correct_answer, ...question.incorrect_answers].sort(
           () => Math.random() - 0.5
         ),
@@ -32,8 +30,8 @@ const QuizPage = () => {
       }));
       setQuestions(formattedQuestions);
     } catch (error) {
-      console.error("Error fetching questions:", error);
-    } 
+      console.error("Error fetching questions:", error); 
+    }
   };
 
   const handleQuizCompletion = () => {
@@ -43,14 +41,13 @@ const QuizPage = () => {
     });
   };
 
-
   const handleQuizStart = () => {
-    setStartTime(new Date()); 
+    setStartTime(new Date());
   };
 
   useEffect(() => {
     getAllQuestions();
-    handleQuizStart();  
+    handleQuizStart();
   }, []);
 
   useEffect(() => {
@@ -66,24 +63,8 @@ const QuizPage = () => {
       navigate("/quiz/question/0");
     }
   }, [questionIndex, questions, navigate]);
- 
-  const handleNextQuestion = () => {
-    const nextIndex = Math.min(currentQuestionIndex + 1, questions.length - 1);
-  
-    if (currentQuestionIndex === 0) {
-      handleQuizStart(); // Set startTime only at the start of the quiz
-    }
-  
-    navigate(`/quiz/question/${nextIndex}`);
-  };
-  
 
-  const handlePrevQuestion = () => {
-    const prevIndex = Math.max(currentQuestionIndex - 1, 0);
-    navigate(`/quiz/question/${prevIndex}`);
-  };
-
-  const onSelectQuestion = (index) => {
+  const navigateToQuestion = (index) => {
     navigate(`/quiz/question/${index}`);
   };
 
@@ -103,24 +84,23 @@ const QuizPage = () => {
 
   if (!user.email) {
     navigate("/");
-    return;
+    return null;
   }
+
   return (
     <div className={styles.main}>
-      <h1>Quiz - {user?.email}</h1>
-      <div className={styles.container}> 
+      <h1>Quiz - {user.email}</h1>
+      <div className={styles.container}>
         <Navigation
           questions={questions}
           visitedQuestions={visitedQuestions}
           currentQuestionIndex={currentQuestionIndex}
-          onSelectQuestion={onSelectQuestion}
+          onSelectQuestion={navigateToQuestion}
           userAnswers={userAnswers}
         />
         <div className={styles.questionContainer}>
           <div className={styles.questions}>
-            <p className={styles.question}>{`Q ${currentQuestionIndex + 1}) ${
-              currentQuestion.question
-            }`}</p>
+            <p className={styles.question}>{`Q ${currentQuestionIndex + 1}) ${currentQuestion.question}`}</p>
             <ul className={styles.choices}>
               {currentQuestion.choices &&
                 currentQuestion.choices.map((choice, choiceIndex) => (
@@ -138,14 +118,14 @@ const QuizPage = () => {
           <div className={styles.buttonsContainer}>
             <button
               className={styles.button}
-              onClick={handlePrevQuestion}
+              onClick={() => navigateToQuestion(currentQuestionIndex - 1)}
               disabled={currentQuestionIndex === 0}
             >
               Previous Question
             </button>
             <button
               className={styles.button}
-              onClick={handleNextQuestion}
+              onClick={() => navigateToQuestion(currentQuestionIndex + 1)}
               disabled={currentQuestionIndex === questions.length - 1}
             >
               Next Question
@@ -158,7 +138,6 @@ const QuizPage = () => {
       </div>
     </div>
   );
-   
 };
 
 export default QuizPage;

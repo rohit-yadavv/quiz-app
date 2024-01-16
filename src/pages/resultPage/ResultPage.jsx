@@ -1,16 +1,16 @@
+import { useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import styles from "./resultPage.module.css";
 import Card from "../../components/card/Card";
 import { useUser } from "../../context/UserContext";
 import Loading from "../../components/loadingScreen/Loading";
-import { useEffect } from "react";
 import QuestionReportCard from "../../components/questionReportCard/QuestionReportCard";
 
 const ResultPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [user] = useUser();
-  const { userAnswers, questions, startTime } = location.state || {};
+  const { userAnswers = [], questions = [], startTime } = location.state || {};
 
   useEffect(() => {
     if (!user.email) {
@@ -18,29 +18,23 @@ const ResultPage = () => {
     }
   }, [user.email, navigate]);
 
-  if (!userAnswers || !questions) {
+  if (!userAnswers.length || !questions.length) {
     return <Loading />;
   }
 
-  const correctAnswersCount = userAnswers.reduce((count, userAnswer, index) => {
-    const correctAnswer = questions[index].correct_answer;
-    return userAnswer === correctAnswer ? count + 1 : count;
-  }, 0);
+  const correctAnswersCount = userAnswers.reduce((count, userAnswer, index) => (
+    userAnswer === questions[index].correct_answer ? count + 1 : count
+  ), 0);
 
-  const questionsAttempted = userAnswers.filter(
-    (answer) => answer !== null
-  ).length;
+  const questionsAttempted = userAnswers.filter(answer => answer !== null).length;
 
   const endTime = new Date();
   const timeDiff = endTime - startTime;
+  const timeTakenInSeconds = Math.floor(timeDiff / 1000);
   const minutesUsed = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
   const secondsUsed = Math.floor((timeDiff % (1000 * 60)) / 1000);
-  const timeTakenInSeconds = minutesUsed * 60 + secondsUsed;
-  const formattedTimeTaken = `${minutesUsed}:${
-    secondsUsed < 10 ? "0" : ""
-  }${secondsUsed}`;
-  const timeTakenLevel =
-    100 - ((30 * 60 - timeTakenInSeconds) / (30 * 60)) * 100;
+  const formattedTimeTaken = `${minutesUsed}:${secondsUsed < 10 ? "0" : ""}${secondsUsed}`;
+  const timeTakenLevel = 100 - ((30 * 60 - timeTakenInSeconds) / (30 * 60)) * 100;
 
   return (
     <div className={styles.mainWrapper}>
@@ -54,13 +48,12 @@ const ResultPage = () => {
           level={(correctAnswersCount / 15) * 100}
         />
         <Card
-          title="QUESTION ATTEMPTED"
+          title="Questions Attempted"
           color="#09416a"
           total={15}
           count={questionsAttempted}
           level={(questionsAttempted / 15) * 100}
         />
-
         <Card
           title="Total Correct"
           color="#e7a529"
@@ -69,7 +62,7 @@ const ResultPage = () => {
           level={(correctAnswersCount / 15) * 100}
         />
         <Card
-          title="Total InCorrect"
+          title="Total Incorrect"
           color="#FF5378"
           total={15}
           count={15 - correctAnswersCount}
